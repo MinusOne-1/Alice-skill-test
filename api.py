@@ -15,6 +15,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 # Хранилище данных о сессиях.
 sessionStorage = {}
+slon = False
 
 
 # Задаем параметры приложения Flask.
@@ -43,11 +44,15 @@ def main():
     )
 
 
+what_we_sell = 'слона'
+
+
 # Функция для непосредственной обработки диалога.
 def handle_dialog(req, res):
+    global slon, what_we_sell
     user_id = req['session']['user_id']
 
-    if req['session']['new']:
+    if req['session']['new'] or slon:
         # Это новый пользователь.
         # Инициализируем сессию и поприветствуем его.
 
@@ -58,8 +63,9 @@ def handle_dialog(req, res):
                 "Отстань!",
             ]
         }
+        slon = False
 
-        res['response']['text'] = 'Привет! Купи слона!'
+        res['response']['text'] = 'Привет! Купи ' + what_we_sell + '!'
         res['response']['buttons'] = get_suggests(user_id)
         return
 
@@ -73,11 +79,13 @@ def handle_dialog(req, res):
         'Я куплю'
     ]:
         # Пользователь согласился, прощаемся.
-        res['response']['text'] = 'Слона можно найти на Яндекс.Маркете!'
+        res['response']['text'] = what_we_sell.title() + ' можно найти на Яндекс.Маркете!'
+        slon = True
+        what_we_sell = 'кролика'
         return
 
     # Если нет, то убеждаем его купить слона!
-    res['response']['text'] = 'Все говорят "%s", а ты купи слона!' % (
+    res['response']['text'] = ('Все говорят "%s", а ты купи ' + what_we_sell + '!') % (
         req['request']['original_utterance']
     )
     res['response']['buttons'] = get_suggests(user_id)
@@ -107,7 +115,6 @@ def get_suggests(user_id):
         })
 
     return suggests
-
 
 
 if __name__ == '__main__':
